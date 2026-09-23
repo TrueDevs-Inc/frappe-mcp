@@ -1,0 +1,27 @@
+docs/connect.md
+  s_07cb835b348662::t_c2d03d4728026a 1-67
+docs/operations.md
+  s_07cb835b348662::t_c2d03d4728026a 1-14,22-58,70-78
+  s_07cb835b348662::t_75377c6580c98d 15-21
+  s_07cb835b348662::t_691eeed99e8697 59-69
+README.md
+  s_07cb835b348662::t_c2d03d4728026a 3-44
+  s_07cb835b348662::t_75377c6580c98d 45-48
+  s_07cb835b348662::t_c758157c6424bb 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "55f1d02e8321ae5318e684a1e12b4d3ff419b375",
+  "prompts": {},
+  "sessions": {
+    "s_07cb835b348662": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f31826756ffesqJSreMOctJwV4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Elhaam Basheer Chaudhry <e4elhaam@gmail.com>"
+    }
+  }
+}
