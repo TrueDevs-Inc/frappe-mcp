@@ -115,7 +115,7 @@ def _consent_page(request: dict[str, str]) -> Response:
     )
     hidden += '<input type="hidden" name="response_type" value="code">'
     hidden += '<input type="hidden" name="code_challenge_method" value="S256">'
-    csrf_token = html.escape(frappe.session.data.csrf_token)
+    csrf_token = html.escape(frappe.sessions.get_csrf_token())
     hidden += f'<input type="hidden" name="csrf_token" value="{csrf_token}">'
     body = (
         "<!doctype html><title>Authorize Frappe MCP</title>"
