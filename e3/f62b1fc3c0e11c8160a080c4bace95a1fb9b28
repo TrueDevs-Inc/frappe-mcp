@@ -1,0 +1,19 @@
+scripts/mcp-smoke.sh
+  s_07cb835b348662::t_691eeed99e8697 1-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e3f62b1fc3c0e11c8160a080c4bace95a1fb9b28",
+  "prompts": {},
+  "sessions": {
+    "s_07cb835b348662": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f31826756ffesqJSreMOctJwV4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Elhaam Basheer Chaudhry <e4elhaam@gmail.com>"
+    }
+  }
+}
