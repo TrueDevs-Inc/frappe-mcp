@@ -1,0 +1,24 @@
+pyproject.toml
+  s_07cb835b348662::t_17796c957ac61e 7,20-21
+  s_07cb835b348662::t_c758157c6424bb 1-6,8-19,22-37
+.gitignore
+  s_07cb835b348662::t_c59ab488834631 1-6
+uv.lock
+  s_07cb835b348662::t_887abf4c039e30 1-471
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a13cfddc85891750e436cc6115bd788dfee2c1f9",
+  "prompts": {},
+  "sessions": {
+    "s_07cb835b348662": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f31826756ffesqJSreMOctJwV4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Elhaam Basheer Chaudhry <e4elhaam@gmail.com>"
+    }
+  }
+}
