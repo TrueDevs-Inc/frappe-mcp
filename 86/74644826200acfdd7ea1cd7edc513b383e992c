@@ -1,0 +1,21 @@
+license.txt
+  s_07cb835b348662::t_c59ab488834631 1-21
+UPSTREAM.md
+  s_07cb835b348662::t_c59ab488834631 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8674644826200acfdd7ea1cd7edc513b383e992c",
+  "prompts": {},
+  "sessions": {
+    "s_07cb835b348662": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f31826756ffesqJSreMOctJwV4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Elhaam Basheer Chaudhry <e4elhaam@gmail.com>"
+    }
+  }
+}
