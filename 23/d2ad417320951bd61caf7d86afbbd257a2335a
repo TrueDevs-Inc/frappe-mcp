@@ -1,0 +1,27 @@
+tests/test_oauth.py
+  s_07cb835b348662::t_37de77c7a6061d 1-9,12,14-15,18-31,34-59
+  s_07cb835b348662::t_0c8d3e718e02e2 13,69-83
+  s_07cb835b348662::t_7ced6679396d0c 32-33
+  s_07cb835b348662::t_ad5c43115d5c7b 10,16,60-68
+  s_07cb835b348662::t_11b1a2c2eb2153 11
+  s_07cb835b348662::t_c125998a914e1a 17
+frappe_mcp/oauth_core.py
+  s_07cb835b348662::t_9fe3dbad0e2c5e 13-84
+  s_07cb835b348662::t_01dd17b44b27ec 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "23d2ad417320951bd61caf7d86afbbd257a2335a",
+  "prompts": {},
+  "sessions": {
+    "s_07cb835b348662": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f31826756ffesqJSreMOctJwV4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Elhaam Basheer Chaudhry <e4elhaam@gmail.com>"
+    }
+  }
+}
