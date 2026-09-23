@@ -1,0 +1,37 @@
+[build-system]
+requires = ["flit_core>=3.9,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "frappe-mcp"
+dynamic = ["version"]
+description = "Permission-aware MCP server for Frappe v15"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2.11,<3", "Werkzeug>=3.1,<4"]
+
+[dependency-groups]
+dev = ["basedpyright>=1.31", "pytest>=8.4", "ruff>=0.12"]
+
+[tool.basedpyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.10"
+include = ["frappe_mcp/protocol.py", "frappe_mcp/oauth_core.py", "tests"]
+
+[tool.bench.dev-dependencies]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-config", "--strict-markers"]
+filterwarnings = ["error"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF", "S"]
+ignore = ["S101"]
+
+[tool.ruff.format]
+quote-style = "double"
