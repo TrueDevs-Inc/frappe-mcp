@@ -1,0 +1,30 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-09-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["code_hash", "client", "user", "redirect_uri", "code_challenge", "resource", "scope", "expires_at", "used"],
+ "fields": [
+  {"fieldname": "code_hash", "fieldtype": "Data", "hidden": 1, "label": "Code Hash", "reqd": 1, "unique": 1},
+  {"fieldname": "client", "fieldtype": "Link", "label": "Client", "options": "Frappe MCP OAuth Client", "reqd": 1},
+  {"fieldname": "user", "fieldtype": "Link", "label": "User", "options": "User", "reqd": 1},
+  {"fieldname": "redirect_uri", "fieldtype": "Data", "label": "Redirect URI", "reqd": 1},
+  {"fieldname": "code_challenge", "fieldtype": "Data", "hidden": 1, "label": "Code Challenge", "reqd": 1},
+  {"fieldname": "resource", "fieldtype": "Data", "label": "Resource", "reqd": 1},
+  {"fieldname": "scope", "fieldtype": "Data", "label": "Scope", "reqd": 1},
+  {"fieldname": "expires_at", "fieldtype": "Datetime", "label": "Expires At", "reqd": 1},
+  {"default": "0", "fieldname": "used", "fieldtype": "Check", "label": "Used"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "MCP",
+ "name": "Frappe MCP Authorization Code",
+ "owner": "Administrator",
+ "permissions": [{"delete": 1, "read": 1, "role": "System Manager"}],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
