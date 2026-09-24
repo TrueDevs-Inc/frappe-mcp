@@ -45,6 +45,20 @@ def test_initialize_negotiates_supported_protocol() -> None:
     assert result["capabilities"] == {"tools": {"listChanged": False}}
 
 
+def test_initialize_negotiates_chatgpt_protocol() -> None:
+    request: dict[str, JsonValue] = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {"protocolVersion": "2025-11-25"},
+    }
+
+    response = require_object(dispatch(request, TOOLS))
+    result = require_object(response["result"])
+
+    assert result["protocolVersion"] == "2025-11-25"
+
+
 def test_tools_list_exposes_schema_and_annotations() -> None:
     request: dict[str, JsonValue] = {
         "jsonrpc": "2.0",
@@ -65,9 +79,34 @@ def test_tools_list_exposes_schema_and_annotations() -> None:
                 "properties": {"value": {}},
                 "additionalProperties": False,
             },
-            "annotations": {"readOnlyHint": True},
+            "annotations": {"readOnlyHint": True, "destructiveHint": False},
         }
     ]
+
+
+def test_write_tools_expose_action_annotations() -> None:
+    create_tool = Tool(
+        name="create_document",
+        description="Create a document.",
+        input_schema={"type": "object"},
+        handler=echo,
+    )
+    delete_tool = Tool(
+        name="delete_document",
+        description="Delete a document.",
+        input_schema={"type": "object"},
+        handler=echo,
+        destructive=True,
+    )
+
+    assert create_tool.descriptor()["annotations"] == {
+        "readOnlyHint": False,
+        "destructiveHint": False,
+    }
+    assert delete_tool.descriptor()["annotations"] == {
+        "readOnlyHint": False,
+        "destructiveHint": True,
+    }
 
 
 def test_initialize_rejects_unsupported_protocol() -> None:

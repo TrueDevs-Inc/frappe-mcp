@@ -12,7 +12,7 @@ ToolHandler: TypeAlias = Callable[[Mapping[str, JsonValue]], JsonValue]
 
 PROTOCOL_VERSION: Final = "2025-06-18"
 SUPPORTED_PROTOCOL_VERSIONS: Final = frozenset(
-    {"2024-11-05", "2025-03-26", "2025-06-18", "2026-07-28"}
+    {"2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25", "2026-07-28"}
 )
 
 
@@ -26,9 +26,10 @@ class Tool:
     destructive: bool = False
 
     def descriptor(self) -> JsonObject:
-        annotations: JsonObject = {"readOnlyHint": self.read_only}
-        if self.destructive:
-            annotations["destructiveHint"] = True
+        annotations: JsonObject = {
+            "readOnlyHint": self.read_only,
+            "destructiveHint": self.destructive,
+        }
         return {
             "name": self.name,
             "description": self.description,
