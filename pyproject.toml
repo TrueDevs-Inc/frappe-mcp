@@ -21,7 +21,7 @@ include = ["frappe_mcp/protocol.py", "frappe_mcp/oauth_core.py", "tests"]
 [tool.bench.dev-dependencies]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "frappe_mcp/tests"]
 addopts = ["-ra", "--strict-config", "--strict-markers"]
 filterwarnings = ["error"]
 
