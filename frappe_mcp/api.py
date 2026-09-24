@@ -43,8 +43,10 @@ def handle() -> Response:
             tools = tuple(tool for tool in tools if tool.read_only)
         response = dispatch(request, tools)
     except frappe.PermissionError:
+        frappe.db.rollback()
         return _rpc_error(_request_id(), -32003, "Forbidden", 403)
     except (TypeError, ValueError, KeyError):
+        frappe.db.rollback()
         return _rpc_error(_request_id(), -32602, "Invalid params")
 
     if response is None:
