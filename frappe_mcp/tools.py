@@ -6,21 +6,14 @@ import frappe
 
 from frappe_mcp.auth import require_identity
 from frappe_mcp.protocol import JsonValue, Tool
-
-PROTECTED_FIELDS = frozenset(
-    {
-        "creation",
-        "docstatus",
-        "doctype",
-        "idx",
-        "modified",
-        "modified_by",
-        "name",
-        "owner",
-        "parent",
-        "parentfield",
-        "parenttype",
-    }
+from frappe_mcp.write_tools import (
+    amend_document,
+    apply_workflow,
+    cancel_document,
+    create_document,
+    delete_document,
+    submit_document,
+    update_document,
 )
 
 
@@ -58,6 +51,7 @@ def registered_tools() -> tuple[Tool, ...]:
             "Update a document using Frappe permissions and validation.",
             _fields_schema(require_name=True),
             update_document,
+            destructive=True,
         ),
         Tool(
             "delete_document",
@@ -71,6 +65,7 @@ def registered_tools() -> tuple[Tool, ...]:
             "Submit a document using Frappe permissions and validation.",
             _document_schema(),
             submit_document,
+            destructive=True,
         ),
         Tool(
             "cancel_document",
@@ -90,6 +85,7 @@ def registered_tools() -> tuple[Tool, ...]:
             "Apply an available workflow action to a document.",
             _workflow_schema(),
             apply_workflow,
+            destructive=True,
         ),
         Tool(
             "run_report",
@@ -133,68 +129,6 @@ def get_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
     return _json_value(doc.as_dict())
 
 
-def create_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
-    _require_write_scope()
-    fields = _write_fields(arguments)
-    doc = frappe.get_doc({"doctype": _required_str(arguments, "doctype"), **fields})
-    doc.insert()
-    return _json_value(doc.as_dict())
-
-
-def update_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
-    _require_write_scope()
-    doc = frappe.get_doc(
-        _required_str(arguments, "doctype"), _required_str(arguments, "name"), for_update=True
-    )
-    doc.update(_write_fields(arguments))
-    doc.save()
-    return _json_value(doc.as_dict())
-
-
-def delete_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
-    _require_write_scope()
-    doctype = _required_str(arguments, "doctype")
-    name = _required_str(arguments, "name")
-    frappe.delete_doc(doctype, name)
-    return {"deleted": True, "doctype": doctype, "name": name}
-
-
-def submit_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
-    _require_write_scope()
-    doc = frappe.get_doc(_required_str(arguments, "doctype"), _required_str(arguments, "name"))
-    doc.submit()
-    return _json_value(doc.as_dict())
-
-
-def cancel_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
-    _require_write_scope()
-    doc = frappe.get_doc(_required_str(arguments, "doctype"), _required_str(arguments, "name"))
-    doc.cancel()
-    return _json_value(doc.as_dict())
-
-
-def amend_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
-    _require_write_scope()
-    source = frappe.get_doc(_required_str(arguments, "doctype"), _required_str(arguments, "name"))
-    source.check_permission("read")
-    amended = frappe.copy_doc(source)
-    amended.name = None
-    amended.docstatus = 0
-    amended.amended_from = source.name
-    amended.update(_write_fields(arguments))
-    amended.insert()
-    return _json_value(amended.as_dict())
-
-
-def apply_workflow(arguments: Mapping[str, JsonValue]) -> JsonValue:
-    _require_write_scope()
-    from frappe.model.workflow import apply_workflow as frappe_apply_workflow
-
-    doc = frappe.get_doc(_required_str(arguments, "doctype"), _required_str(arguments, "name"))
-    result = frappe_apply_workflow(doc, _required_str(arguments, "action"))
-    return _json_value(result.as_dict() if result else {"queued": True})
-
-
 def run_report(arguments: Mapping[str, JsonValue]) -> JsonValue:
     from frappe.desk.query_report import run
 
@@ -206,30 +140,11 @@ def run_report(arguments: Mapping[str, JsonValue]) -> JsonValue:
     return _json_value(result)
 
 
-def _require_write_scope() -> None:
-    if "mcp:write" not in require_identity().scope.split():
-        frappe.throw("This token does not have mcp:write scope", frappe.PermissionError)
-
-
 def _required_str(arguments: Mapping[str, JsonValue], name: str) -> str:
     value = arguments.get(name)
     if not isinstance(value, str) or not value:
         raise ValueError(f"{name} must be a non-empty string")
     return value
-
-
-def _required_mapping(arguments: Mapping[str, JsonValue], name: str) -> dict[str, JsonValue]:
-    value = arguments.get(name)
-    if not isinstance(value, dict):
-        raise ValueError(f"{name} must be an object")
-    return value
-
-
-def _write_fields(arguments: Mapping[str, JsonValue]) -> dict[str, JsonValue]:
-    fields = _required_mapping(arguments, "fields")
-    if PROTECTED_FIELDS.intersection(fields):
-        raise ValueError("fields contains protected document metadata")
-    return fields
 
 
 def _integer(value: JsonValue) -> int:
