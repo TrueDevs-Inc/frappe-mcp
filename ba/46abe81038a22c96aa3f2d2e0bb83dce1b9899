@@ -1,0 +1,23 @@
+frappe_mcp/write_tools.py
+  s_07cb835b348662::t_2a873c8772a3fa 109-118,122-123,126,131
+frappe_mcp/tests/test_write_tools.py
+  s_07cb835b348662::t_9fdd72198962ca 26,29,41,164-197
+  s_07cb835b348662::t_fbeb6f4f72e9bb 22,37-40,42,114-163
+  s_07cb835b348662::t_d8b67c202e99a4 198-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ba46abe81038a22c96aa3f2d2e0bb83dce1b9899",
+  "prompts": {},
+  "sessions": {
+    "s_07cb835b348662": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f31826756ffesqJSreMOctJwV4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Elhaam Basheer Chaudhry <e4elhaam@gmail.com>"
+    }
+  }
+}
