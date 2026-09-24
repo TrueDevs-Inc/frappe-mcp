@@ -11,6 +11,10 @@ from frappe_mcp.protocol import JsonValue
 SERVER_OWNED_FIELDS = frozenset({"amended_from"})
 
 
+class WriteFieldError(ValueError):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class WriteTarget:
     doctype: str
@@ -111,7 +115,7 @@ def _write_fields(arguments: Mapping[str, JsonValue], target: WriteTarget) -> di
             or field.read_only
             or fieldname in SERVER_OWNED_FIELDS
         ):
-            raise frappe.PermissionError(f"Field is not writable: {fieldname}")
+            raise WriteFieldError(f"Field is not writable: {fieldname}")
         if field.fieldtype in frappe.model.table_fields:
             validated[fieldname] = _child_rows(target, field, value)
         else:

@@ -10,6 +10,7 @@ from frappe_mcp.auth import require_identity
 from frappe_mcp.config import bearer_challenge, enabled, write_enabled
 from frappe_mcp.protocol import JsonObject, JsonValue, dispatch
 from frappe_mcp.tools import registered_tools
+from frappe_mcp.write_tools import WriteFieldError
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -42,6 +43,9 @@ def handle() -> Response:
         if not write_enabled():
             tools = tuple(tool for tool in tools if tool.read_only)
         response = dispatch(request, tools)
+    except WriteFieldError as error:
+        frappe.db.rollback()
+        return _rpc_error(_request_id(), -32602, str(error))
     except frappe.PermissionError:
         frappe.db.rollback()
         return _rpc_error(_request_id(), -32003, "Forbidden", 403)

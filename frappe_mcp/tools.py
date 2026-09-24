@@ -42,7 +42,7 @@ def registered_tools() -> tuple[Tool, ...]:
         ),
         Tool(
             "create_document",
-            "Create a document using Frappe permissions and validation.",
+            "Create a document using editable fields; ERPNext fills read-only values.",
             _fields_schema(),
             create_document,
         ),

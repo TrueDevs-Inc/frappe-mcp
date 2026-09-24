@@ -56,22 +56,22 @@ def write_tools(monkeypatch):
 
 
 def test_internal_and_server_owned_fields_are_rejected(write_tools) -> None:
-    module, frappe, permission_error = write_tools
+    module, frappe, _permission_error = write_tools
     meta = FakeMeta([FakeField("title"), FakeField("amended_from")], ["title", "amended_from"])
     _set(frappe, "get_meta", lambda _doctype: meta)
 
-    with pytest.raises(permission_error):
+    with pytest.raises(module.WriteFieldError):
         module._write_fields({"fields": {"_action": "cancel"}}, module.WriteTarget("Note"))
-    with pytest.raises(permission_error):
+    with pytest.raises(module.WriteFieldError):
         module._write_fields({"fields": {"amended_from": "NOTE-0001"}}, module.WriteTarget("Note"))
 
 
 def test_field_level_write_permission_is_enforced(write_tools) -> None:
-    module, frappe, permission_error = write_tools
+    module, frappe, _permission_error = write_tools
     meta = FakeMeta([FakeField("public"), FakeField("restricted")], ["public"])
     _set(frappe, "get_meta", lambda _doctype: meta)
 
-    with pytest.raises(permission_error):
+    with pytest.raises(module.WriteFieldError, match="Field is not writable: restricted"):
         module._write_fields(
             {"fields": {"restricted": "secret"}}, module.WriteTarget("Secure Note")
         )
