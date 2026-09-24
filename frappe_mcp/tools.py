@@ -5,6 +5,11 @@ from collections.abc import Mapping
 import frappe
 
 from frappe_mcp.auth import require_identity
+from frappe_mcp.customization_tools import (
+    get_doctype_meta,
+    update_field_property,
+    upsert_custom_field,
+)
 from frappe_mcp.protocol import JsonValue, Tool
 from frappe_mcp.write_tools import (
     amend_document,
@@ -41,6 +46,13 @@ def registered_tools() -> tuple[Tool, ...]:
             True,
         ),
         Tool(
+            "get_doctype_meta",
+            "Inspect effective field metadata using Frappe read permissions.",
+            _doctype_meta_schema(),
+            get_doctype_meta,
+            True,
+        ),
+        Tool(
             "create_document",
             "Create a document using editable fields; ERPNext fills read-only values.",
             _fields_schema(),
@@ -51,6 +63,20 @@ def registered_tools() -> tuple[Tool, ...]:
             "Update a document using Frappe permissions and validation.",
             _fields_schema(require_name=True),
             update_document,
+            destructive=True,
+        ),
+        Tool(
+            "update_field_property",
+            "Update an allowed field property through Custom Field or Property Setter.",
+            _field_property_schema(),
+            update_field_property,
+            destructive=True,
+        ),
+        Tool(
+            "upsert_custom_field",
+            "Create or update a Custom Field using normal Frappe permissions and validation.",
+            _custom_field_schema(),
+            upsert_custom_field,
             destructive=True,
         ),
         Tool(
@@ -214,4 +240,39 @@ def _workflow_schema() -> dict[str, JsonValue]:
 def _report_schema() -> dict[str, JsonValue]:
     return _object_schema(
         {"report_name": {"type": "string"}, "filters": {"type": "object"}}, ["report_name"]
+    )
+
+
+def _doctype_meta_schema() -> dict[str, JsonValue]:
+    return _object_schema(
+        {"doctype": {"type": "string"}, "fieldname": {"type": "string"}}, ["doctype"]
+    )
+
+
+def _field_property_schema() -> dict[str, JsonValue]:
+    return _object_schema(
+        {
+            "doctype": {"type": "string"},
+            "fieldname": {"type": "string"},
+            "property": {"type": "string"},
+            "value": {"type": "boolean"},
+        },
+        ["doctype", "fieldname", "property", "value"],
+    )
+
+
+def _custom_field_schema() -> dict[str, JsonValue]:
+    return _object_schema(
+        {
+            "doctype": {"type": "string"},
+            "fieldname": {"type": "string"},
+            "label": {"type": "string"},
+            "fieldtype": {"type": "string"},
+            "options": {"type": "string"},
+            "insert_after": {"type": "string"},
+            "reqd": {"type": "boolean"},
+            "hidden": {"type": "boolean"},
+            "read_only": {"type": "boolean"},
+        },
+        ["doctype", "fieldname", "label", "fieldtype"],
     )
