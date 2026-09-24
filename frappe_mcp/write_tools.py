@@ -106,17 +106,29 @@ def _write_fields(arguments: Mapping[str, JsonValue], target: WriteTarget) -> di
             with_virtual_fields=False,
         )
     )
+    permissions = meta.get_permissions(parenttype=target.parenttype)
+    writable_permlevels = (
+        set(
+            meta.get_permlevel_access(
+                permission_type="write", parenttype=target.parenttype, user=frappe.session.user
+            )
+        )
+        if permissions
+        else set()
+    )
     validated: dict[str, JsonValue] = {}
     for fieldname, value in fields.items():
         field = meta.get_field(fieldname)
+        table_field = field is not None and field.fieldtype in frappe.model.table_fields
+        writable_table = table_field and (not permissions or field.permlevel in writable_permlevels)
         if (
             field is None
-            or fieldname not in permitted
+            or (fieldname not in permitted and not writable_table)
             or field.read_only
             or fieldname in SERVER_OWNED_FIELDS
         ):
             raise WriteFieldError(f"Field is not writable: {fieldname}")
-        if field.fieldtype in frappe.model.table_fields:
+        if table_field:
             validated[fieldname] = _child_rows(target, field, value)
         else:
             validated[fieldname] = value
