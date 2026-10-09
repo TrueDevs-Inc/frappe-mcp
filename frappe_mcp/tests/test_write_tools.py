@@ -65,13 +65,154 @@ def write_tools(monkeypatch):
 
 def test_internal_and_server_owned_fields_are_rejected(write_tools) -> None:
     module, frappe, _permission_error = write_tools
-    meta = FakeMeta([FakeField("title"), FakeField("amended_from")], ["title", "amended_from"])
+    meta = FakeMeta(
+        [FakeField("title"), FakeField("amended_from"), FakeField("name")],
+        ["title", "amended_from", "name"],
+    )
     _set(frappe, "get_meta", lambda _doctype: meta)
 
     with pytest.raises(module.WriteFieldError):
         module._write_fields({"fields": {"_action": "cancel"}}, module.WriteTarget("Note"))
     with pytest.raises(module.WriteFieldError):
         module._write_fields({"fields": {"amended_from": "NOTE-0001"}}, module.WriteTarget("Note"))
+    with pytest.raises(module.WriteFieldError):
+        module._write_fields({"fields": {"name": "NOTE-0001"}}, module.WriteTarget("Note"))
+
+
+def test_server_script_creation_accepts_only_top_level_name(write_tools) -> None:
+    module, frappe, _permission_error = write_tools
+    meta = FakeMeta([FakeField("script_type"), FakeField("script")], ["script_type", "script"])
+    _set(frappe, "get_meta", lambda _doctype: meta)
+    assigned_names: list[str] = []
+
+    class FakeDocument:
+        doctype = "Server Script"
+        name = None
+
+        def __init__(self, values):
+            self.values = values
+
+        def __setattr__(self, name, value):
+            if name == "name":
+                assigned_names.append(value)
+            object.__setattr__(self, name, value)
+
+        def insert(self):
+            self.values["name"] = self.name
+            return self
+
+        def has_permission(self, _permission):
+            return True
+
+        def apply_fieldlevel_read_permissions(self):
+            return None
+
+        def as_dict(self):
+            return self.values
+
+    _set(frappe, "get_doc", lambda values: FakeDocument(values))
+
+    result = module.create_document(
+        {
+            "doctype": "Server Script",
+            "name": "Lead Account Tiering Calculation",
+            "fields": {"script_type": "DocType Event", "script": "doc.save()"},
+        }
+    )
+
+    assert result["name"] == "Lead Account Tiering Calculation"
+    assert assigned_names == ["Lead Account Tiering Calculation"]
+
+
+def test_server_script_creation_requires_top_level_name(write_tools) -> None:
+    module, _frappe, _permission_error = write_tools
+
+    with pytest.raises(ValueError, match="name must be a non-empty string"):
+        module.create_document(
+            {"doctype": "Server Script", "fields": {"script_type": "API", "script": ""}}
+        )
+
+
+def test_non_server_script_rejects_top_level_name(write_tools) -> None:
+    module, _frappe, _permission_error = write_tools
+
+    with pytest.raises(module.WriteFieldError, match="Field is not writable: name"):
+        module.create_document({"doctype": "Note", "name": "NOTE-1", "fields": {"title": "No"}})
+
+
+def test_server_script_rejects_nested_name(write_tools) -> None:
+    module, frappe, _permission_error = write_tools
+    meta = FakeMeta(
+        [FakeField("script_type"), FakeField("script"), FakeField("name")],
+        ["script_type", "script", "name"],
+    )
+    _set(frappe, "get_meta", lambda _doctype: meta)
+
+    with pytest.raises(module.WriteFieldError, match="Field is not writable: name"):
+        module.create_document(
+            {
+                "doctype": "Server Script",
+                "name": "Lead Account Tiering Calculation",
+                "fields": {"name": "Other", "script_type": "API", "script": ""},
+            }
+        )
+
+
+def test_server_script_duplicate_name_error_is_preserved(write_tools) -> None:
+    module, frappe, _permission_error = write_tools
+    meta = FakeMeta([FakeField("script_type"), FakeField("script")], ["script_type", "script"])
+    _set(frappe, "get_meta", lambda _doctype: meta)
+
+    class DuplicateNameError(Exception):
+        pass
+
+    class FakeDocument:
+        doctype = "Server Script"
+        name = None
+
+        def __init__(self, _values):
+            pass
+
+        def insert(self):
+            raise DuplicateNameError("Duplicate name")
+
+    _set(frappe, "get_doc", lambda values: FakeDocument(values))
+
+    with pytest.raises(DuplicateNameError, match="Duplicate name"):
+        module.create_document(
+            {
+                "doctype": "Server Script",
+                "name": "Lead Account Tiering Calculation",
+                "fields": {"script_type": "DocType Event", "script": "doc.save()"},
+            }
+        )
+
+
+def test_server_script_permission_error_is_preserved(write_tools) -> None:
+    module, frappe, permission_error = write_tools
+    meta = FakeMeta([FakeField("script_type"), FakeField("script")], ["script_type", "script"])
+    _set(frappe, "get_meta", lambda _doctype: meta)
+
+    class FakeDocument:
+        doctype = "Server Script"
+        name = None
+
+        def __init__(self, _values):
+            pass
+
+        def insert(self):
+            raise permission_error("Not permitted")
+
+    _set(frappe, "get_doc", lambda values: FakeDocument(values))
+
+    with pytest.raises(permission_error, match="Not permitted"):
+        module.create_document(
+            {
+                "doctype": "Server Script",
+                "name": "Lead Account Tiering Calculation",
+                "fields": {"script_type": "DocType Event", "script": "doc.save()"},
+            }
+        )
 
 
 def test_field_level_write_permission_is_enforced(write_tools) -> None:

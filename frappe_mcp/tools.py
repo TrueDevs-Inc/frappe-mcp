@@ -11,6 +11,7 @@ from frappe_mcp.customization_tools import (
     upsert_custom_field,
 )
 from frappe_mcp.protocol import JsonValue, Tool
+from frappe_mcp.upload_tools import upload_file
 from frappe_mcp.write_tools import (
     amend_document,
     apply_workflow,
@@ -57,6 +58,13 @@ def registered_tools() -> tuple[Tool, ...]:
             "Create a document using editable fields; ERPNext fills read-only values.",
             _fields_schema(),
             create_document,
+        ),
+        Tool(
+            "upload_file",
+            "Attach in-memory base64 content to a writable attachment field (maximum 5 MiB).",
+            _upload_schema(),
+            upload_file,
+            destructive=True,
         ),
         Tool(
             "update_document",
@@ -204,6 +212,18 @@ def _document_schema() -> dict[str, JsonValue]:
     )
 
 
+def _upload_schema() -> dict[str, JsonValue]:
+    properties: dict[str, JsonValue] = {
+        "target_doctype": {"type": "string"},
+        "target_name": {"type": "string"},
+        "target_field": {"type": "string"},
+        "file_name": {"type": "string"},
+        "content": {"type": "string"},
+        "is_private": {"type": "boolean"},
+    }
+    return _object_schema(properties, list(properties))
+
+
 def _fields_schema(require_name: bool = False) -> dict[str, JsonValue]:
     properties: dict[str, JsonValue] = {
         "doctype": {"type": "string"},
@@ -213,6 +233,8 @@ def _fields_schema(require_name: bool = False) -> dict[str, JsonValue]:
     if require_name:
         properties["name"] = {"type": "string"}
         required.append("name")
+    else:
+        properties["name"] = {"type": "string"}
     return _object_schema(properties, required)
 
 

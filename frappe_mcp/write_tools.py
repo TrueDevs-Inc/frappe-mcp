@@ -8,7 +8,7 @@ import frappe
 from frappe_mcp.auth import require_identity
 from frappe_mcp.protocol import JsonValue
 
-SERVER_OWNED_FIELDS = frozenset({"amended_from"})
+SERVER_OWNED_FIELDS = frozenset({"amended_from", "name"})
 
 
 class WriteFieldError(ValueError):
@@ -25,8 +25,17 @@ class WriteTarget:
 def create_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
     _require_write_scope()
     doctype = _required_str(arguments, "doctype")
+    explicit_name = arguments.get("name")
+    if doctype == "Server Script":
+        if explicit_name is None:
+            raise ValueError("name must be a non-empty string")
+        explicit_name = _required_str(arguments, "name")
+    elif explicit_name is not None:
+        raise WriteFieldError("Field is not writable: name")
     fields = _write_fields(arguments, WriteTarget(doctype))
     doc = frappe.get_doc({"doctype": doctype, **fields})
+    if explicit_name is not None:
+        doc.name = explicit_name
     doc.insert()
     return _document_result(doc)
 
