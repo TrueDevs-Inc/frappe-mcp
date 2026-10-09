@@ -9,6 +9,14 @@ def echo(arguments: Mapping[str, JsonValue]) -> JsonValue:
     return {"echo": arguments.get("value")}
 
 
+def list_result(_arguments: Mapping[str, JsonValue]) -> JsonValue:
+    return [{"name": "LEAD-001", "status": "Open"}]
+
+
+def list_object_result(_arguments: Mapping[str, JsonValue]) -> JsonValue:
+    return {"rows": [{"name": "LEAD-001", "status": "Open"}], "total": 1}
+
+
 TOOLS = (
     Tool(
         name="echo",
@@ -19,6 +27,26 @@ TOOLS = (
             "additionalProperties": False,
         },
         handler=echo,
+        read_only=True,
+    ),
+)
+
+LIST_TOOLS = (
+    Tool(
+        name="list_documents",
+        description="List documents.",
+        input_schema={"type": "object"},
+        handler=list_result,
+        read_only=True,
+    ),
+)
+
+LIST_OBJECT_TOOLS = (
+    Tool(
+        name="list_documents",
+        description="List documents.",
+        input_schema={"type": "object"},
+        handler=list_object_result,
         read_only=True,
     ),
 )
@@ -135,6 +163,44 @@ def test_tools_call_returns_structured_and_text_content() -> None:
 
     assert result["structuredContent"] == {"echo": "hello"}
     assert result["content"] == [{"type": "text", "text": '{"echo":"hello"}'}]
+
+
+def test_list_tool_returns_array_in_text_content_without_invalid_structured_content() -> None:
+    request: dict[str, JsonValue] = {
+        "jsonrpc": "2.0",
+        "id": 6,
+        "method": "tools/call",
+        "params": {"name": "list_documents", "arguments": {}},
+    }
+
+    response = require_object(dispatch(request, LIST_TOOLS))
+    result = require_object(response["result"])
+
+    assert "structuredContent" not in result
+    assert result["content"] == [{"type": "text", "text": '[{"name":"LEAD-001","status":"Open"}]'}]
+
+
+def test_list_tool_returns_object_in_structured_and_text_content() -> None:
+    request: dict[str, JsonValue] = {
+        "jsonrpc": "2.0",
+        "id": 7,
+        "method": "tools/call",
+        "params": {"name": "list_documents", "arguments": {}},
+    }
+
+    response = require_object(dispatch(request, LIST_OBJECT_TOOLS))
+    result = require_object(response["result"])
+
+    assert result["structuredContent"] == {
+        "rows": [{"name": "LEAD-001", "status": "Open"}],
+        "total": 1,
+    }
+    assert result["content"] == [
+        {
+            "type": "text",
+            "text": '{"rows":[{"name":"LEAD-001","status":"Open"}],"total":1}',
+        }
+    ]
 
 
 def test_unknown_method_returns_json_rpc_error() -> None:

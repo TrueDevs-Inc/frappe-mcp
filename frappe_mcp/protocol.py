@@ -82,13 +82,10 @@ def _call_tool(
 
     result = tool.handler(arguments)
     text = json.dumps(result, ensure_ascii=False, separators=(",", ":"))
-    return _success(
-        request_id,
-        {
-            "content": [{"type": "text", "text": text}],
-            "structuredContent": result,
-        },
-    )
+    tool_result: JsonObject = {"content": [{"type": "text", "text": text}]}
+    if isinstance(result, dict):
+        tool_result["structuredContent"] = result
+    return _success(request_id, tool_result)
 
 
 def _mapping(value: JsonValue) -> dict[str, JsonValue]:
