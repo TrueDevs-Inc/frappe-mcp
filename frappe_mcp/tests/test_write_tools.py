@@ -83,7 +83,7 @@ def test_server_script_creation_accepts_only_top_level_name(write_tools) -> None
     module, frappe, _permission_error = write_tools
     meta = FakeMeta([FakeField("script_type"), FakeField("script")], ["script_type", "script"])
     _set(frappe, "get_meta", lambda _doctype: meta)
-    insert_names = []
+    assigned_names: list[str] = []
 
     class FakeDocument:
         doctype = "Server Script"
@@ -92,9 +92,12 @@ def test_server_script_creation_accepts_only_top_level_name(write_tools) -> None
         def __init__(self, values):
             self.values = values
 
-        def insert(self, *, set_name=None):
-            insert_names.append(set_name)
-            self.name = set_name
+        def __setattr__(self, name, value):
+            if name == "name":
+                assigned_names.append(value)
+            object.__setattr__(self, name, value)
+
+        def insert(self):
             self.values["name"] = self.name
             return self
 
@@ -118,7 +121,7 @@ def test_server_script_creation_accepts_only_top_level_name(write_tools) -> None
     )
 
     assert result["name"] == "Lead Account Tiering Calculation"
-    assert insert_names == ["Lead Account Tiering Calculation"]
+    assert assigned_names == ["Lead Account Tiering Calculation"]
 
 
 def test_server_script_creation_requires_top_level_name(write_tools) -> None:
@@ -170,7 +173,7 @@ def test_server_script_duplicate_name_error_is_preserved(write_tools) -> None:
         def __init__(self, _values):
             pass
 
-        def insert(self, **_kwargs):
+        def insert(self):
             raise DuplicateNameError("Duplicate name")
 
     _set(frappe, "get_doc", lambda values: FakeDocument(values))
@@ -197,7 +200,7 @@ def test_server_script_permission_error_is_preserved(write_tools) -> None:
         def __init__(self, _values):
             pass
 
-        def insert(self, **_kwargs):
+        def insert(self):
             raise permission_error("Not permitted")
 
     _set(frappe, "get_doc", lambda values: FakeDocument(values))

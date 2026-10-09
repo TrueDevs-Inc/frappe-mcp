@@ -35,9 +35,8 @@ def create_document(arguments: Mapping[str, JsonValue]) -> JsonValue:
     fields = _write_fields(arguments, WriteTarget(doctype))
     doc = frappe.get_doc({"doctype": doctype, **fields})
     if explicit_name is not None:
-        doc.insert(set_name=explicit_name)
-    else:
-        doc.insert()
+        doc.name = explicit_name
+    doc.insert()
     return _document_result(doc)
 
 
